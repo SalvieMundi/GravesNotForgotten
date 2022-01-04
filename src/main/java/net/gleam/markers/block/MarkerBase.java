@@ -16,6 +16,8 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
@@ -158,11 +160,25 @@ public class MarkerBase extends HorizontalFacingBlock implements BlockEntityProv
         		extraItems.add(inventory.subList(36, 40).get(i));
         	}
         }
+        
         if(playerEntity.getInventory().offHand.get(0) == ItemStack.EMPTY) {
         	playerEntity.equipStack(EquipmentSlot.OFFHAND, inventory.get(40));
         }else{
         	extraItems.add(inventory.get(40));
         }
+        
+        if(Markers.backSlotLoaded && items.size() >= 41 && items.get(41) != ItemStack.EMPTY) {
+			playerEntity.getInventory().setStack(41, items.get(41));
+        }else{
+        	extraItems.add(items.get(41));
+        }
+        
+        if(Markers.backSlotLoaded && items.size() >= 42 && items.get(42) != ItemStack.EMPTY) {
+			playerEntity.getInventory().setStack(42, items.get(42));
+        }else{
+        	extraItems.add(items.get(42));
+        }
+        
         extraItems.addAll(inventory.subList(0, 36));
         List<Integer> openSlots = getInventoryOpenSlots(playerEntity.getInventory().main);
         for(int i = 0; i < openSlots.size(); i++) {

@@ -25,6 +25,8 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
@@ -47,8 +49,11 @@ public class Markers implements ModInitializer {
 	public static final ArrayList<MarkersApi> apiMods = new ArrayList<>();
 	
 	public static String MOD_ID = "notforgotten";
-	public static String BRAND_BLOCK = "marker";//Maybe name can be changed in config? Also helps for diy quick and easy locale. Plus people who want to call it a gravestone can.
+	public static String BRAND_BLOCK = "marker"; //Maybe name can be changed in config? Also helps for diy quick and easy locale. Plus people who want to call it a gravestone can.
 	//tbh I'm tired
+	
+	public static boolean trinketsLoaded = FabricLoader.getInstance().isModLoaded("trinkets");
+	public static boolean backSlotLoaded = FabricLoader.getInstance().isModLoaded("backslot");
 
 	@Override
 	public void onInitialize() {
@@ -87,17 +92,21 @@ public class Markers implements ModInitializer {
 
 		combinedInventory.addAll(player.getInventory().main);
 		combinedInventory.addAll(player.getInventory().armor);
+		combinedInventory.addAll(player.getInventory().offHand);
 		/*if(){//Compat Inventories. when I don't need to sleep lol
 		 * combinedInventory.addAll(player.getInventory().armor);
 		 * }*/
-		combinedInventory.addAll(player.getInventory().offHand);
 
 		for (MarkersApi markersApi : Markers.apiMods) {
 			combinedInventory.addAll(markersApi.getInventory(player));
 		}
+		if (backSlotLoaded) {
+			combinedInventory.add(player.getInventory().getStack(41));
+			combinedInventory.add(player.getInventory().getStack(42));
+		}
 
-		if(blockPos.getY() < 0) {
-			blockPos = new BlockPos(blockPos.getX(), 10, blockPos.getZ());
+		if(blockPos.getY() < world.getBottomY()) {
+			blockPos = new BlockPos(blockPos.getX(), world.getBottomY() + 10, blockPos.getZ());
 		}
 		
 		for (BlockPos markerPos : BlockPos.iterateOutwards(blockPos.add(new Vec3i(0, 1, 0)), 5, 5, 5)) {
@@ -125,7 +134,7 @@ public class Markers implements ModInitializer {
 				}
 				block.onBreak(world, blockPos, blockState, player);
 
-				player.sendMessage(new TranslatableText("text.notforgotten.mark_coords", markerPos.getX(), markerPos.getY(), markerPos.getZ()), false);
+				//player.sendMessage(new TranslatableText("text.notforgotten.mark_coords", markerPos.getX(), markerPos.getY(), markerPos.getZ()), false);
 				System.out.println("[Markers] Marker spawned at: " + markerPos.getX() + ", " + markerPos.getY() + ", " + markerPos.getZ());
 				break;
 			}
@@ -145,7 +154,7 @@ public class Markers implements ModInitializer {
 
 		if(blackListedBlocks.contains(block)) return false;
 
-		return !(blockPos.getY() < 0 || blockPos.getY() > 255);
+		return !(blockPos.getY() < world.getBottomY() || blockPos.getY() > world.getTopY());
 	}
 }
 
